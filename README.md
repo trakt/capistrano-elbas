@@ -38,6 +38,12 @@ Set the means through which to communicate with instances. Select from `public_d
 set :elbas_hostname_type, 'private_ip_address'
 ```
 
+Define how many past AMIs to keep during cleanup. The default is 5.
+
+```ruby
+set :elbas_keep_amis, 5
+```
+
 ## Usage
 
 Instead of using Capistrano's `server` method, use `autoscale` instead in
