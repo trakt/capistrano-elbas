@@ -16,9 +16,12 @@ namespace :elbas do
       info "Auto Scaling Group: #{aws_autoscale_group_name}"
       asg = Elbas::AWS::AutoscaleGroup.new aws_autoscale_group_name
 
+      release_version = fetch(:elbas_release_version) || fetch(:current_revision) || `git rev-parse HEAD`.strip
+
       info "Creating AMI from a running instance..."
       ami = Elbas::AWS::AMI.create asg.instances.running.sample
       ami.tag 'ELBAS-Deploy-group', asg.name
+      ami.tag 'ELBAS-Deploy-revision', release_version
       ami.tag 'ELBAS-Deploy-id', env.timestamp.to_i.to_s
       info  "Created AMI: #{ami.id}"
 
