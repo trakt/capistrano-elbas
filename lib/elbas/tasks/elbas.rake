@@ -17,6 +17,7 @@ namespace :elbas do
       asg = Elbas::AWS::AutoscaleGroup.new aws_autoscale_group_name
 
       release_version = fetch(:elbas_release_version) || fetch(:current_revision) || `git rev-parse HEAD`.strip
+      release_timestamp = fetch(:release_timestamp) || env.timestamp.strftime("%Y%m%d%H%M%S")
 
       ami_instance = asg.instances.running.sample
       info "Creating AMI from instance #{ami_instance.id}..."
@@ -29,9 +30,8 @@ namespace :elbas do
       info "Tagging AMI: ELBAS-Deploy-revision = #{release_version}"
       ami.tag 'ELBAS-Deploy-revision', release_version
       
-      timestamp = env.timestamp.to_i.to_s
-      info "Tagging AMI: ELBAS-Deploy-id = #{timestamp}"
-      ami.tag 'ELBAS-Deploy-id', timestamp
+      info "Tagging AMI: ELBAS-Deploy-id = #{release_timestamp}"
+      ami.tag 'ELBAS-Deploy-id', release_timestamp
 
       launch_template = asg.launch_template
       info "Updating launch template #{launch_template.name} with the new AMI..."
