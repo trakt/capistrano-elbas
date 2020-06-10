@@ -18,26 +18,37 @@ namespace :elbas do
 
       release_version = fetch(:elbas_release_version) || fetch(:current_revision) || `git rev-parse HEAD`.strip
 
-      info "Creating AMI from a running instance..."
-      ami = Elbas::AWS::AMI.create asg.instances.running.sample
-      ami.tag 'ELBAS-Deploy-group', asg.name
-      ami.tag 'ELBAS-Deploy-revision', release_version
-      ami.tag 'ELBAS-Deploy-id', env.timestamp.to_i.to_s
+      ami_instance = asg.instances.running.sample
+      info "Creating AMI from instance #{ami_instance.id}..."
+      ami = Elbas::AWS::AMI.create ami_instance
       info  "Created AMI: #{ami.id}"
 
-      info "Updating launch template with the new AMI..."
-      launch_template = asg.launch_template.update ami
-      info "Updated launch template, new default version = #{launch_template.version}"
+      info "Tagging AMI: ELBAS-Deploy-group = #{asg.name}"
+      ami.tag 'ELBAS-Deploy-group', asg.name
 
-      info "Cleaning up old AMIs..."
+      info "Tagging AMI: ELBAS-Deploy-revision = #{release_version}"
+      ami.tag 'ELBAS-Deploy-revision', release_version
+      
+      timestamp = env.timestamp.to_i.to_s
+      info "Tagging AMI: ELBAS-Deploy-id = #{timestamp}"
+      ami.tag 'ELBAS-Deploy-id', timestamp
+
+      launch_template = asg.launch_template
+      info "Updating launch template #{launch_template.name} with the new AMI..."
+      launch_template = launch_template.update ami
+      info "Updated launch template, latest version = #{launch_template.version}"
+
       keep = fetch(:elbas_keep_amis) || 5
+      info "Cleaning up old AMIs (keeping #{keep})..."
       if ami.ancestors.count > keep
         amis = ami.ancestors.drop(keep)
         amis.each do |ancestor|
-          info "Deleting old AMI: #{ancestor.id}"
+          info "Deleting AMI: #{ancestor.id}"
           ancestor.delete
         end
         info "Deleted #{amis.count} old AMIs and keeping newest #{keep}"
+      else
+        info "No old AMIs to delete"
       end
 
       info "Deployment complete!"
