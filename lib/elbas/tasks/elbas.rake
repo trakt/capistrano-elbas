@@ -50,8 +50,7 @@ namespace :elbas do
       else
         info "No old AMIs to delete"
       end
-
-      info "Deployment complete!"
     end
+    info "Deployment complete!"
   end
 end
