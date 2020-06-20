@@ -23,6 +23,13 @@ module Elbas
         )
       end
 
+      def set_default_version(ver = self.version)
+        aws_client.modify_launch_template({
+          launch_template_id: self.id,
+          default_version: ver
+        }).launch_template
+      end
+
       private
         def aws_namespace
           ::Aws::EC2
