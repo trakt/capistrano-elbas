@@ -21,7 +21,7 @@ namespace :elbas do
 
       ami_instance = asg.instances.running.sample
       info "Creating AMI from instance #{ami_instance.id}..."
-      ami = Elbas::AWS::AMI.create ami_instance
+      ami = Elbas::AWS::AMI.create(ami_instance, no_reboot: false)
       info  "Created AMI: #{ami.id}"
 
       info "Tagging AMI: ELBAS-Deploy-group = #{asg.name}"
